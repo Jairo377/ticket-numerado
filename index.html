@@ -152,7 +152,6 @@
     </button>
   </div>
 
-  <!-- Librerías externas -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
@@ -193,31 +192,18 @@
       svg.style.display = 'none';
     }
 
-    // ====== COMPARTIR / IMPRIMIR (Estructura idéntica al ticket funcional con Jadens) ======
+    // ====== COMPARTIR / IMPRIMIR (Idéntico al código base funcional) ======
     let busy = false;
     async function compartirEtiqueta() {
       if (busy) return;
       busy = true;
       try {
-        const canvas = await html2canvas(document.getElementById('label-wrapper'), { 
-          scale: 3, 
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          logging: false
-        });
-        
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-        if (!blob) throw new Error('Canvas blob failed');
-
-        const fileName = (data.codigo || 'etiqueta') + '.png';
-        const file = new File([blob], fileName, { type: 'image/png' });
+        const canvas = await html2canvas(document.getElementById('label-wrapper'), { scale: 3, backgroundColor: '#ffffff' });
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        const file = new File([blob], 'etiqueta.png', { type: 'image/png' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ 
-            files: [file], 
-            title: 'Etiqueta de paquete',
-            text: data.codigo ? `Etiqueta ${data.codigo}` : 'Etiqueta'
-          });
+          await navigator.share({ files: [file], title: 'Etiqueta' });
         } else {
           window.print();
         }
@@ -233,13 +219,6 @@
       compartirEtiqueta();
     });
     document.getElementById('label-wrapper').addEventListener('click', compartirEtiqueta);
-
-    // Registrar Service Worker para Offline
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
-      });
-    }
   </script>
 </body>
 </html>
