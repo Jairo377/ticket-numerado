@@ -1,11 +1,11 @@
-const CACHE_NAME = 'etiqueta-esa-v1';
+const CACHE_NAME = 'etiqueta-esa-v2';
 const ASSETS = [
   './',
   './index.html',
-  'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js'
+  'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
-// Instalar y guardar en caché el HTML y la librería de código de barras
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -15,7 +15,6 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Limpiar cachés antiguos si cambias la versión
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -30,7 +29,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Interceptar peticiones: ignorar los parámetros de URL (?NombreESA=...) para servir siempre el index.html guardado
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
