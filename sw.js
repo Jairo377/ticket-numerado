@@ -2,43 +2,46 @@ const CACHE_NAME = 'etiqueta-esa-v1';
 const ASSETS = [
   './',
   './index.html',
-  'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+  'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js'
 ];
 
-// Instalar y guardar en caché los recursos base
-self.addEventListener('install', event => {
+// Instalar y guardar en caché el HTML y la librería de código de barras
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
   );
 });
 
-// Activar y limpiar cachés viejos si actualizas la versión
-self.addEventListener('activate', event => {
+// Limpiar cachés antiguos si cambias la versión
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys => {
+    caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
       );
     }).then(() => self.clients.claim())
   );
 });
 
-// Interceptar peticiones para servir desde caché cuando estés Offline
-self.addEventListener('fetch', event => {
+// Interceptar peticiones: ignorar los parámetros de URL (?NombreESA=...) para servir siempre el index.html guardado
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    // ignoreSearch: true es clave para que ignore los parámetros (?NombreESA=...) y entregue el HTML guardado
-    caches.match(event.request, { ignoreSearch: true }).then(cachedResponse => {
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) {
         return cachedResponse;
       }
-      return fetch(event.request).then(networkResponse => {
-        return caches.open(CACHE_NAME).then(cache => {
-          if (event.request.method === 'GET' && networkResponse.status === 200) {
-            cache.put(event.request, networkResponse.clone());
-          }
+      return fetch(event.request).then((networkResponse) => {
+        return caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, networkResponse.clone());
           return networkResponse;
         });
       });
