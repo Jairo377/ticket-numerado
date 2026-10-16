@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Etiqueta de paquete</title>
+  <style>
+    @page { size: 4in 3in; margin: 0; }
+    :root { --margen: 3.5cqw; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #e5e5e5; font-family: Arial, Helvetica, sans-serif; color: #000; }
+    body { 
+      min-height: 100vh; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      padding: 12px; 
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Hoja 4x3 pulgadas (proporción 4:3) con margen blanco alrededor */
+    :root { --w: min(calc(100vw - 24px), 720px); }
+    .label-wrapper {
+      width: var(--w);
+      height: calc(var(--w) * 0.75);   /* 4 de ancho x 3 de alto */
+      background: #fff;
+      padding: 3.5%;
+      overflow: hidden;
+      container-type: inline-size;
+      flex: none;
+    }
+    .label {
+      width: 100%;
+      height: 100%;
+      border: 3px solid #000;
+      display: grid;
+      grid-template-rows: 1fr 31%;
+    }
+
+    main { display: grid; grid-template-columns: 56% 44%; min-height: 0; }
+
+    /* ---- Columna izquierda ---- */
+    .info { border-right: 3px solid #000; display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); padding: 0 3cqw; }
+    .info div { display: flex; align-items: center; font-size: 5.2cqw; line-height: 1; white-space: nowrap; overflow: hidden; }
+
+    /* Nombre: si es largo pasa a segunda línea */
+    .info #nombre { white-space: normal; line-height: 1.05; overflow-wrap: anywhere; }
+
+    /* ---- Columna derecha ---- */
+    .side { display: grid; grid-template-rows: 44% 25% 1fr; min-height: 0; }
+    .count { border-bottom: 3px solid #000; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15cqw; line-height: 1; }
+    .icons { display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center; }
+    .icons svg { width: 6.5cqw; height: 6.5cqw; stroke: #000; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .vals { display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center; font-weight: 700; font-size: 4.8cqw; }
+
+    /* ---- Código de barras ---- */
+    .barcode-area { border-top: 3px solid #000; display: flex; align-items: center; justify-content: center; min-height: 0; }
+    .barcode { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .barcode svg { display: block; margin: 0 auto; flex: none; }
+
+    @media print {
+      html, body { background: #fff; }
+      body { padding: 0; display: block; min-height: 0; }
+      .label-wrapper { width: 4in; height: 3in; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="label-wrapper" id="label-wrapper">
+    <div class="label" id="label">
+      <main>
+        <section class="info">
+          <div id="nombre"></div>
+          <div id="telefono"></div>
+          <div id="estado"></div>
+          <div id="destino"></div>
+        </section>
+
+        <section class="side">
+          <div class="count" id="cantidad"></div>
+
+          <div class="icons">
+            <!-- Bandera -->
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="2.4" height="18" rx="1.2"/><path d="M5.4 4.5C7.7 3 9.7 6 12 5s5-1.5 8 0v7.5c-3-1.5-4 1.5-8 .5s-4.5-1.5-6.6 0"/></svg>
+            <!-- Buzón -->
+            <svg viewBox="0 0 24 24"><path d="M3 16v-5.5a4.5 4.5 0 0 1 4.5-4.5h7a4.5 4.5 0 0 1 4.5 4.5V16z"/><path d="M9.5 16v-4.5A3.5 3.5 0 0 0 6 8"/><circle cx="14" cy="11.5" r="1.1"/><path d="M11 16v6h3v-6"/><path d="M16.5 6V2h4v2.5h-4"/></svg>
+            <!-- Documentos -->
+            <svg viewBox="0 0 24 24"><path d="M8 4h9a2 2 0 0 1 2 2v12"/><rect x="4" y="7" width="12" height="14" rx="2"/><path d="M7.5 12h5M7.5 15h5"/></svg>
+          </div>
+
+          <div class="vals">
+            <span id="v1"></span>
+            <span id="v2"></span>
+            <span id="v3"></span>
+          </div>
+        </section>
+      </main>
+
+      <section class="barcode-area">
+        <div class="barcode">
+          <svg id="barcode"></svg>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    // ====== REGISTRO DE SERVICE WORKER (OFFLINE) ======
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.error('Error SW:', err));
+      });
+    }
+
+    // ====== PARÁMETROS DESDE APPSHEET (En blanco si no se envían) ======
+    const q = new URLSearchParams(location.search);
+    const data = {
+      nombre:   q.get('NombreESA')        || '',
+      telefono: q.get('NumeroEntrega')    || '',
+      estado:   q.get('Pagado')           || '',
+      destino:  q.get('Ciudad')           || '',
+      cantidad: q.get('Paquete')          || '',
+      v1:       q.get('Extras')           || '',
+      v2:       q.get('Articulos_correo') || '',
+      v3:       q.get('Papeles')          || '',
+      codigo:   q.get('IDEsa')            || ''
+    };
+
+    for (const id of ['nombre','telefono','estado','destino','cantidad','v1','v2','v3']) {
+      document.getElementById(id).textContent = data[id];
+    }
+
+    // ====== CÓDIGO DE BARRAS (Solo se dibuja si viene IDEsa) ======
+    const svg = document.getElementById('barcode');
+    if (data.codigo.trim() !== '') {
+      JsBarcode(svg, data.codigo, { format: 'CODE128', displayValue: false, width: 3, height: 100, margin: 0 });
+      svg.setAttribute('viewBox', '0 0 ' + parseFloat(svg.getAttribute('width')) + ' ' + parseFloat(svg.getAttribute('height')));
+      svg.setAttribute('preserveAspectRatio', 'none');
+      const box = svg.parentElement;
+      svg.setAttribute('width',  Math.round(box.clientWidth  * 0.78));
+      svg.setAttribute('height', Math.round(box.clientHeight * 0.78));
+    }
+
+    // ====== COMPARTIR / IMPRIMIR (Toca la pantalla) ======
+    let busy = false;
+    document.addEventListener('click', async () => {
+      if (busy) return;
+      busy = true;
+      try {
+        const canvas = await html2canvas(document.getElementById('label-wrapper'), { 
+          scale: 3, 
+          backgroundColor: '#ffffff',
+          useCORS: true 
+        });
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        const fileName = data.codigo ? `etiqueta_${data.codigo}.png` : 'etiqueta.png';
+        const file = new File([blob], fileName, { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Etiqueta' });
+        } else {
+          window.print();
+        }
+      } catch (e) {
+        if (e.name !== 'AbortError') window.print();
+      } finally {
+        busy = false;
+      }
+    });
+  </script>
+</body>
+</html>
