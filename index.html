@@ -193,7 +193,7 @@
       svg.style.display = 'none';
     }
 
-    // ====== COMPARTIR / IMPRIMIR CON html2canvas (Compatible con Jadens Printer) ======
+    // ====== COMPARTIR / IMPRIMIR (Estructura idéntica al ticket funcional con Jadens) ======
     let busy = false;
     async function compartirEtiqueta() {
       if (busy) return;
@@ -202,14 +202,22 @@
         const canvas = await html2canvas(document.getElementById('label-wrapper'), { 
           scale: 3, 
           backgroundColor: '#ffffff',
-          useCORS: true 
+          useCORS: true,
+          logging: false
         });
-        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-        const nombreArchivo = (data.codigo || 'etiqueta') + '.png';
-        const file = new File([blob], nombreArchivo, { type: 'image/png' });
+        
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        if (!blob) throw new Error('Canvas blob failed');
+
+        const fileName = (data.codigo || 'etiqueta') + '.png';
+        const file = new File([blob], fileName, { type: 'image/png' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'Etiqueta' });
+          await navigator.share({ 
+            files: [file], 
+            title: 'Etiqueta de paquete',
+            text: data.codigo ? `Etiqueta ${data.codigo}` : 'Etiqueta'
+          });
         } else {
           window.print();
         }
@@ -226,7 +234,7 @@
     });
     document.getElementById('label-wrapper').addEventListener('click', compartirEtiqueta);
 
-    // Registrar Service Worker para Offline (actualiza también sw.js para incluir html2canvas si es necesario)
+    // Registrar Service Worker para Offline
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
