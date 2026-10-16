@@ -90,6 +90,10 @@
     .btn-share:active {
       background: #051d38;
     }
+    .btn-share:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
 
     @media print {
       html, body { background: #fff; }
@@ -152,6 +156,7 @@
     </button>
   </div>
 
+  <!-- Librerías externas -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
@@ -192,33 +197,59 @@
       svg.style.display = 'none';
     }
 
-    // ====== COMPARTIR / IMPRIMIR (Idéntico al código base funcional) ======
-    let busy = false;
-    async function compartirEtiqueta() {
-      if (busy) return;
-      busy = true;
-      try {
-        const canvas = await html2canvas(document.getElementById('label-wrapper'), { scale: 3, backgroundColor: '#ffffff' });
-        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-        const file = new File([blob], 'etiqueta.png', { type: 'image/png' });
+    // ====== GENERACIÓN PREVIA Y COMPARTIR EXCLUSIVO DE IMAGEN (Jadens Ready) ======
+    let archivoImagenListo = null;
+    const btn = document.getElementById('btn-share');
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'Etiqueta' });
-        } else {
-          window.print();
-        }
+    async function generarImagen() {
+      try {
+        btn.disabled = true;
+        const wrapper = document.getElementById('label-wrapper');
+        const scale = 1152 / wrapper.offsetWidth;
+        const canvas = await html2canvas(wrapper, { scale, backgroundColor: '#ffffff', useCORS: true });
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        const id = data.codigo || 'etiqueta';
+        archivoImagenListo = new File([blob], `Etiqueta_${id}.png`, { type: 'image/png' });
       } catch (e) {
-        if (e.name !== 'AbortError') window.print();
+        console.log('Error generando imagen previa', e);
       } finally {
-        busy = false;
+        btn.disabled = false;
       }
     }
 
-    document.getElementById('btn-share').addEventListener('click', (e) => {
+    async function compartirEtiqueta() {
+      if (!archivoImagenListo) {
+        alert('Generando archivo PNG, espera un segundo y vuelve a tocar.');
+        return;
+      }
+      if (navigator.canShare && navigator.canShare({ files: [archivoImagenListo] })) {
+        try {
+          // Únicamente el archivo de imagen, sin título ni texto para que Jadens aparezca
+          await navigator.share({ files: [archivoImagenListo] });
+        } catch (e) {
+          if (e.name !== 'AbortError') console.log('Error al compartir', e);
+        }
+      } else {
+        window.print();
+      }
+    }
+
+    btn.addEventListener('click', (e) => {
       e.stopPropagation();
       compartirEtiqueta();
     });
+    
     document.getElementById('label-wrapper').addEventListener('click', compartirEtiqueta);
+
+    // Generar la imagen automáticamente al cargar la página
+    window.addEventListener('load', generarImagen);
+
+    // Registrar Service Worker para Offline
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+      });
+    }
   </script>
 </body>
 </html>
