@@ -5,196 +5,104 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Etiqueta ESA</title>
+  <title>Etiqueta de paquete</title>
   <style>
     @page { size: 4in 3in; margin: 0; }
-    :root { 
-      --w: min(calc(100vw - 24px), 680px); 
-    }
+    :root { --margen: 3.5cqw; }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     
     html, body { 
-      background: #1e293b; 
+      background: #e5e5e5; 
       font-family: Arial, Helvetica, sans-serif; 
       color: #000; 
-      min-height: 100vh;
     }
     
     body { 
+      min-height: 100vh; 
       display: flex; 
       flex-direction: column;
       align-items: center; 
       justify-content: center; 
-      padding: 16px 12px; 
-      gap: 18px;
+      padding: 12px; 
+      gap: 16px;
     }
 
-    /* Barra de estado superior (No se imprime) */
-    .status-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #334155;
-      color: #f8fafc;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-    }
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #22c55e;
-    }
-    .dot.offline { background: #eab308; }
-
-    /* Hoja 4x3 pulgadas (proporción 4:3) */
+    /* Hoja 4x3 pulgadas (proporción 4:3) con margen blanco alrededor */
+    :root { --w: min(calc(100vw - 24px), 720px); }
     .label-wrapper {
       width: var(--w);
-      height: calc(var(--w) * 0.75);
+      height: calc(var(--w) * 0.75);   /* 4 de ancho x 3 de alto */
       background: #fff;
       padding: 3.5%;
       overflow: hidden;
       container-type: inline-size;
       flex: none;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    
     .label {
       width: 100%;
       height: 100%;
       border: 3px solid #000;
       display: grid;
       grid-template-rows: 1fr 31%;
-      background: #fff;
     }
 
     main { display: grid; grid-template-columns: 56% 44%; min-height: 0; }
 
     /* ---- Columna izquierda ---- */
-    .info { 
-      border-right: 3px solid #000; 
-      display: grid; 
-      grid-template-rows: repeat(4, minmax(0, 1fr)); 
-      padding: 0 3cqw; 
-    }
-    .info div { 
-      display: flex; 
-      align-items: center; 
-      font-size: 5.2cqw; 
-      font-weight: 600;
-      line-height: 1; 
-      white-space: nowrap; 
-      overflow: hidden; 
-    }
+    .info { border-right: 3px solid #000; display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); padding: 0 3cqw; }
+    .info div { display: flex; align-items: center; font-size: 5.2cqw; line-height: 1; white-space: nowrap; overflow: hidden; }
 
     /* Nombre: si es largo pasa a segunda línea */
-    .info #nombre { 
-      white-space: normal; 
-      line-height: 1.05; 
-      overflow-wrap: anywhere; 
-    }
+    .info #nombre { white-space: normal; line-height: 1.05; overflow-wrap: anywhere; }
 
     /* ---- Columna derecha ---- */
     .side { display: grid; grid-template-rows: 44% 25% 1fr; min-height: 0; }
-    .count { 
-      border-bottom: 3px solid #000; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      font-weight: 700; 
-      font-size: 15cqw; 
-      line-height: 1; 
-    }
-    .icons { 
-      display: grid; 
-      grid-template-columns: repeat(3, 1fr); 
-      align-items: center; 
-      justify-items: center; 
-    }
-    .icons svg { 
-      width: 6.5cqw; 
-      height: 6.5cqw; 
-      stroke: #000; 
-      fill: none; 
-      stroke-width: 1.8; 
-      stroke-linecap: round; 
-      stroke-linejoin: round; 
-    }
-    .vals { 
-      display: grid; 
-      grid-template-columns: repeat(3, 1fr); 
-      align-items: center; 
-      justify-items: center; 
-      font-weight: 700; 
-      font-size: 4.8cqw; 
-    }
+    .count { border-bottom: 3px solid #000; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15cqw; line-height: 1; }
+    .icons { display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center; }
+    .icons svg { width: 6.5cqw; height: 6.5cqw; stroke: #000; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .vals { display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center; font-weight: 700; font-size: 4.8cqw; }
 
     /* ---- Código de barras ---- */
-    .barcode-area { 
-      border-top: 3px solid #000; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      min-height: 0; 
-      padding: 1.5cqw 4cqw;
-    }
-    .barcode { 
-      width: 100%; 
-      height: 100%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-    }
-    .barcode svg { 
-      width: 100%; 
-      height: 100%; 
-      display: block; 
-    }
+    .barcode-area { border-top: 3px solid #000; display: flex; align-items: center; justify-content: center; min-height: 0; }
+    .barcode { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .barcode svg { display: block; margin: 0 auto; flex: none; }
 
-    /* Botón de acción limpio y sobrio */
+    /* Botón de acción con el color azul del trabajo (#072C56) */
     .actions {
       display: flex;
-      gap: 12px;
       width: var(--w);
     }
     .btn-share {
       flex: 1;
-      background: #2563eb;
+      background: #072C56;
       color: #ffffff;
       border: none;
-      padding: 15px 20px;
-      font-size: 16px;
+      padding: 14px 20px;
+      font-size: 15px;
       font-weight: 700;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
     .btn-share:active {
-      background: #1d4ed8;
+      background: #051d38;
     }
 
     @media print {
-      html, body { background: #fff; padding: 0; display: block; min-height: 0; }
-      .status-bar, .actions { display: none !important; }
-      .label-wrapper { width: 4in; height: 3in; box-shadow: none; border-radius: 0; }
+      html, body { background: #fff; }
+      body { padding: 0; display: block; min-height: 0; }
+      .actions { display: none !important; }
+      .label-wrapper { width: 4in; height: 3in; box-shadow: none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Indicador de estado Offline/Online -->
-  <div class="status-bar" id="status-bar">
-    <span class="dot" id="status-dot"></span>
-    <span id="status-text">Listo para imprimir (Offline activo)</span>
-  </div>
-
-  <!-- Etiqueta en Blanco por defecto -->
   <div class="label-wrapper" id="label-wrapper">
     <div class="label" id="label">
       <main>
@@ -209,11 +117,11 @@
           <div class="count" id="cantidad"></div>
 
           <div class="icons">
-            <!-- Bandera (Extras) -->
+            <!-- Bandera -->
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="2.4" height="18" rx="1.2"/><path d="M5.4 4.5C7.7 3 9.7 6 12 5s5-1.5 8 0v7.5c-3-1.5-4 1.5-8 .5s-4.5-1.5-6.6 0"/></svg>
-            <!-- Buzón (Articulos_correo) -->
+            <!-- Buzón -->
             <svg viewBox="0 0 24 24"><path d="M3 16v-5.5a4.5 4.5 0 0 1 4.5-4.5h7a4.5 4.5 0 0 1 4.5 4.5V16z"/><path d="M9.5 16v-4.5A3.5 3.5 0 0 0 6 8"/><circle cx="14" cy="11.5" r="1.1"/><path d="M11 16v6h3v-6"/><path d="M16.5 6V2h4v2.5h-4"/></svg>
-            <!-- Documentos (Papeles) -->
+            <!-- Documentos -->
             <svg viewBox="0 0 24 24"><path d="M8 4h9a2 2 0 0 1 2 2v12"/><rect x="4" y="7" width="12" height="14" rx="2"/><path d="M7.5 12h5M7.5 15h5"/></svg>
           </div>
 
@@ -234,24 +142,22 @@
     </div>
   </div>
 
-  <!-- Botón de Compartir -->
+  <!-- Botón de Compartir / Imprimir -->
   <div class="actions">
     <button class="btn-share" id="btn-share">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="6 9 6 2 18 2 18 9"></polyline>
         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
         <rect x="6" y="14" width="12" height="8"></rect>
       </svg>
-      Compartir / Imprimir Etiqueta
+      Imprimir / Compartir Etiqueta
     </button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script>
-    // ====== 1. LECTURA DE PARÁMETROS APPSHEET (Vacío por defecto si no hay URL) ======
+    // ====== DATOS (AppSheet) ======
     const q = new URLSearchParams(location.search);
-    
-    // Función auxiliar por si AppSheet manda mayúsculas o minúsculas distintas
     const getParam = (key) => {
       for (const [k, v] of q.entries()) {
         if (k.toLowerCase() === key.toLowerCase()) return v.trim();
@@ -271,29 +177,23 @@
       codigo:   getParam('IDEsa')            || getParam('codigo')   || ''
     };
 
-    // Asignar textos en el DOM (quedan en blanco si no se envían parámetros)
     for (const id of ['nombre','telefono','estado','destino','cantidad','v1','v2','v3']) {
       document.getElementById(id).textContent = data[id];
     }
 
-    // Generar código de barras solo si existe IDEsa
     const svg = document.getElementById('barcode');
     if (data.codigo) {
-      JsBarcode(svg, data.codigo, { 
-        format: 'CODE128', 
-        displayValue: false, 
-        width: 3, 
-        height: 100, 
-        margin: 0 
-      });
+      JsBarcode(svg, data.codigo, { format: 'CODE128', displayValue: false, width: 3, height: 100, margin: 0 });
       svg.setAttribute('viewBox', '0 0 ' + parseFloat(svg.getAttribute('width')) + ' ' + parseFloat(svg.getAttribute('height')));
       svg.setAttribute('preserveAspectRatio', 'none');
+      const box = svg.parentElement;
+      svg.setAttribute('width',  Math.round(box.clientWidth  * 0.78));
+      svg.setAttribute('height', Math.round(box.clientHeight * 0.78));
     } else {
       svg.style.display = 'none';
     }
 
-    // ====== 2. GENERADOR DE IMAGEN NATIVO EN ALTA RESOLUCIÓN (4x3" = 1200x900px) ======
-    // Garantiza que en iOS/Safari nunca salga en blanco y funcione 100% offline
+    // ====== GENERADOR NATIVO A CANVAS PARA COMPARTIR EN iOS / ANDROID ======
     async function generarImagenEtiqueta() {
       const W = 1200;
       const H = 900;
@@ -302,40 +202,24 @@
       canvas.height = H;
       const ctx = canvas.getContext('2d');
 
-      // Fondo blanco
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, W, H);
 
-      // Margen 3.5% de W (42px)
       const pad = Math.round(W * 0.035);
-      const lx = pad;
-      const ly = pad;
-      const lw = W - pad * 2; // 1116px
-      const lh = H - pad * 2; // 816px
+      const lx = pad, ly = pad, lw = W - pad * 2, lh = H - pad * 2;
 
-      // Borde principal
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 6;
       ctx.strokeRect(lx, ly, lw, lh);
 
-      // Divisiones principales
-      const mainH = Math.round(lh * 0.69); // 69% arriba, 31% código de barras
-      const leftW = Math.round(lw * 0.56); // 56% izquierda, 44% derecha
+      const mainH = Math.round(lh * 0.69);
+      const leftW = Math.round(lw * 0.56);
       const rightW = lw - leftW;
 
-      // Línea horizontal (separa main de barcode)
-      ctx.beginPath();
-      ctx.moveTo(lx, ly + mainH);
-      ctx.lineTo(lx + lw, ly + mainH);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(lx, ly + mainH); ctx.lineTo(lx + lw, ly + mainH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(lx + leftW, ly); ctx.lineTo(lx + leftW, ly + mainH); ctx.stroke();
 
-      // Línea vertical (separa columna izquierda de derecha)
-      ctx.beginPath();
-      ctx.moveTo(lx + leftW, ly);
-      ctx.lineTo(lx + leftW, ly + mainH);
-      ctx.stroke();
-
-      // ---- COLUMNA IZQUIERDA (4 filas) ----
+      // Columna izquierda
       const rowH = mainH / 4;
       const textPadX = Math.round(W * 0.03);
       const maxTextW = leftW - textPadX * 2;
@@ -343,7 +227,6 @@
       ctx.font = '600 58px Arial, Helvetica, sans-serif';
       ctx.textBaseline = 'middle';
 
-      // Fila 1: Nombre (con salto de línea si es largo)
       const nombreTxt = data.nombre;
       if (nombreTxt) {
         const words = nombreTxt.split(' ');
@@ -372,26 +255,19 @@
         }
       }
 
-      // Filas 2, 3 y 4: Teléfono, Estado, Destino
       const leftRows = [data.telefono, data.estado, data.destino];
       leftRows.forEach((val, idx) => {
-        const cy = ly + rowH * (idx + 1.5);
-        ctx.fillText(val, lx + textPadX, cy, maxTextW);
+        ctx.fillText(val, lx + textPadX, ly + rowH * (idx + 1.5), maxTextW);
       });
 
-      // ---- COLUMNA DERECHA ----
+      // Columna derecha
       const rightX = lx + leftW;
       const countH = Math.round(mainH * 0.44);
       const iconsH = Math.round(mainH * 0.25);
       const valsH = mainH - countH - iconsH;
 
-      // Línea debajo del contador grande
-      ctx.beginPath();
-      ctx.moveTo(rightX, ly + countH);
-      ctx.lineTo(lx + lw, ly + countH);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rightX, ly + countH); ctx.lineTo(lx + lw, ly + countH); ctx.stroke();
 
-      // Número de paquete grande
       ctx.save();
       ctx.font = '700 175px Arial, Helvetica, sans-serif';
       ctx.textAlign = 'center';
@@ -399,7 +275,6 @@
       ctx.fillText(data.cantidad, rightX + rightW / 2, ly + countH / 2 + 6);
       ctx.restore();
 
-      // Dibujar los 3 Iconos SVG (Bandera, Buzón, Documentos)
       const colW = rightW / 3;
       const iconSize = 76;
       const iconY = ly + countH + (iconsH - iconSize) / 2;
@@ -409,21 +284,15 @@
         ctx.translate(cx - iconSize / 2, cy);
         const scale = iconSize / 24;
         ctx.scale(scale, scale);
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 1.8;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        ctx.strokeStyle = '#000000'; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
         pathsFn(ctx);
         ctx.restore();
       };
 
-      // Icono 1: Bandera
       drawSvgPaths(rightX + colW * 0.5, iconY, (c) => {
         c.stroke(new Path2D('M4.2 3h0a1.2 1.2 0 0 1 1.2 1.2v15.6a1.2 1.2 0 0 1-1.2 1.2h0a1.2 1.2 0 0 1-1.2-1.2V4.2A1.2 1.2 0 0 1 4.2 3z'));
         c.stroke(new Path2D('M5.4 4.5C7.7 3 9.7 6 12 5s5-1.5 8 0v7.5c-3-1.5-4 1.5-8 .5s-4.5-1.5-6.6 0'));
       });
-
-      // Icono 2: Buzón
       drawSvgPaths(rightX + colW * 1.5, iconY, (c) => {
         c.stroke(new Path2D('M3 16v-5.5a4.5 4.5 0 0 1 4.5-4.5h7a4.5 4.5 0 0 1 4.5 4.5V16z'));
         c.stroke(new Path2D('M9.5 16v-4.5A3.5 3.5 0 0 0 6 8'));
@@ -431,15 +300,12 @@
         c.stroke(new Path2D('M11 16v6h3v-6'));
         c.stroke(new Path2D('M16.5 6V2h4v2.5h-4'));
       });
-
-      // Icono 3: Documentos
       drawSvgPaths(rightX + colW * 2.5, iconY, (c) => {
         c.stroke(new Path2D('M8 4h9a2 2 0 0 1 2 2v12'));
         c.stroke(new Path2D('M6 7h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z'));
         c.stroke(new Path2D('M7.5 12h5M7.5 15h5'));
       });
 
-      // Valores (Extras, Articulos_correo, Papeles)
       ctx.save();
       ctx.font = '700 54px Arial, Helvetica, sans-serif';
       ctx.textAlign = 'center';
@@ -450,37 +316,25 @@
       ctx.fillText(data.v3, rightX + colW * 2.5, valY);
       ctx.restore();
 
-      // ---- CÓDIGO DE BARRAS ----
       if (data.codigo) {
         const tempCanvas = document.createElement('canvas');
-        JsBarcode(tempCanvas, data.codigo, {
-          format: 'CODE128',
-          displayValue: false,
-          width: 4,
-          height: 160,
-          margin: 0
-        });
-        const bcAreaY = ly + mainH;
-        const bcAreaH = lh - mainH;
-        const bcW = Math.round(lw * 0.82);
-        const bcH = Math.round(bcAreaH * 0.78);
-        const bcX = lx + Math.round((lw - bcW) / 2);
-        const bcY = bcAreaY + Math.round((bcAreaH - bcH) / 2);
-        ctx.drawImage(tempCanvas, bcX, bcY, bcW, bcH);
+        JsBarcode(tempCanvas, data.codigo, { format: 'CODE128', displayValue: false, width: 4, height: 160, margin: 0 });
+        const bcAreaY = ly + mainH, bcAreaH = lh - mainH;
+        const bcW = Math.round(lw * 0.82), bcH = Math.round(bcAreaH * 0.78);
+        ctx.drawImage(tempCanvas, lx + Math.round((lw - bcW) / 2), bcAreaY + Math.round((bcAreaH - bcH) / 2), bcW, bcH);
       }
 
       return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     }
 
-    // ====== 3. COMPARTIR / IMPRIMIR ======
+    // ====== COMPARTIR / IMPRIMIR ======
     let busy = false;
     async function compartirEtiqueta() {
       if (busy) return;
       busy = true;
       try {
         const blob = await generarImagenEtiqueta();
-        const nombreArchivo = (data.codigo || 'etiqueta') + '.png';
-        const file = new File([blob], nombreArchivo, { type: 'image/png' });
+        const file = new File([blob], (data.codigo || 'etiqueta') + '.png', { type: 'image/png' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({ files: [file], title: 'Etiqueta' });
@@ -494,30 +348,13 @@
       }
     }
 
-    // Funciona tanto tocando el botón como tocando la etiqueta
     document.getElementById('btn-share').addEventListener('click', (e) => {
       e.stopPropagation();
       compartirEtiqueta();
     });
     document.getElementById('label-wrapper').addEventListener('click', compartirEtiqueta);
 
-    // ====== 4. REGISTRO SERVICE WORKER (OFFLINE) ======
-    const dot = document.getElementById('status-dot');
-    const txt = document.getElementById('status-text');
-
-    function updateStatus() {
-      if (navigator.onLine) {
-        dot.classList.remove('offline');
-        txt.textContent = 'En línea (Modo Offline guardado)';
-      } else {
-        dot.classList.add('offline');
-        txt.textContent = 'Modo sin conexión activo';
-      }
-    }
-    window.addEventListener('online', updateStatus);
-    window.addEventListener('offline', updateStatus);
-    updateStatus();
-
+    // Registrar Service Worker para Offline
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
