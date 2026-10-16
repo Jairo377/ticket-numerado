@@ -2,9 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Etiqueta de paquete</title>
   <style>
     @page { size: 4in 3in; margin: 0; }
@@ -154,7 +152,9 @@
     </button>
   </div>
 
+  <!-- Librerías externas -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     // ====== DATOS (AppSheet) ======
     const q = new URLSearchParams(location.search);
@@ -193,148 +193,20 @@
       svg.style.display = 'none';
     }
 
-    // ====== GENERADOR NATIVO A CANVAS PARA COMPARTIR EN iOS / ANDROID ======
-    async function generarImagenEtiqueta() {
-      const W = 1200;
-      const H = 900;
-      const canvas = document.createElement('canvas');
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext('2d');
-
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, W, H);
-
-      const pad = Math.round(W * 0.035);
-      const lx = pad, ly = pad, lw = W - pad * 2, lh = H - pad * 2;
-
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 6;
-      ctx.strokeRect(lx, ly, lw, lh);
-
-      const mainH = Math.round(lh * 0.69);
-      const leftW = Math.round(lw * 0.56);
-      const rightW = lw - leftW;
-
-      ctx.beginPath(); ctx.moveTo(lx, ly + mainH); ctx.lineTo(lx + lw, ly + mainH); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(lx + leftW, ly); ctx.lineTo(lx + leftW, ly + mainH); ctx.stroke();
-
-      // Columna izquierda
-      const rowH = mainH / 4;
-      const textPadX = Math.round(W * 0.03);
-      const maxTextW = leftW - textPadX * 2;
-      ctx.fillStyle = '#000000';
-      ctx.font = '600 58px Arial, Helvetica, sans-serif';
-      ctx.textBaseline = 'middle';
-
-      const nombreTxt = data.nombre;
-      if (nombreTxt) {
-        const words = nombreTxt.split(' ');
-        let lines = [];
-        let currentLine = words[0] || '';
-        for (let i = 1; i < words.length; i++) {
-          const testLine = currentLine + ' ' + words[i];
-          if (ctx.measureText(testLine).width <= maxTextW) {
-            currentLine = testLine;
-          } else {
-            lines.push(currentLine);
-            currentLine = words[i];
-          }
-        }
-        lines.push(currentLine);
-        if (lines.length > 2) lines = [lines[0], lines.slice(1).join(' ')];
-
-        const centerY1 = ly + rowH * 0.5;
-        if (lines.length === 1) {
-          ctx.fillText(lines[0], lx + textPadX, centerY1, maxTextW);
-        } else {
-          ctx.font = '600 50px Arial, Helvetica, sans-serif';
-          ctx.fillText(lines[0], lx + textPadX, centerY1 - 26, maxTextW);
-          ctx.fillText(lines[1], lx + textPadX, centerY1 + 26, maxTextW);
-          ctx.font = '600 58px Arial, Helvetica, sans-serif';
-        }
-      }
-
-      const leftRows = [data.telefono, data.estado, data.destino];
-      leftRows.forEach((val, idx) => {
-        ctx.fillText(val, lx + textPadX, ly + rowH * (idx + 1.5), maxTextW);
-      });
-
-      // Columna derecha
-      const rightX = lx + leftW;
-      const countH = Math.round(mainH * 0.44);
-      const iconsH = Math.round(mainH * 0.25);
-      const valsH = mainH - countH - iconsH;
-
-      ctx.beginPath(); ctx.moveTo(rightX, ly + countH); ctx.lineTo(lx + lw, ly + countH); ctx.stroke();
-
-      ctx.save();
-      ctx.font = '700 175px Arial, Helvetica, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(data.cantidad, rightX + rightW / 2, ly + countH / 2 + 6);
-      ctx.restore();
-
-      const colW = rightW / 3;
-      const iconSize = 76;
-      const iconY = ly + countH + (iconsH - iconSize) / 2;
-
-      const drawSvgPaths = (cx, cy, pathsFn) => {
-        ctx.save();
-        ctx.translate(cx - iconSize / 2, cy);
-        const scale = iconSize / 24;
-        ctx.scale(scale, scale);
-        ctx.strokeStyle = '#000000'; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        pathsFn(ctx);
-        ctx.restore();
-      };
-
-      drawSvgPaths(rightX + colW * 0.5, iconY, (c) => {
-        c.stroke(new Path2D('M4.2 3h0a1.2 1.2 0 0 1 1.2 1.2v15.6a1.2 1.2 0 0 1-1.2 1.2h0a1.2 1.2 0 0 1-1.2-1.2V4.2A1.2 1.2 0 0 1 4.2 3z'));
-        c.stroke(new Path2D('M5.4 4.5C7.7 3 9.7 6 12 5s5-1.5 8 0v7.5c-3-1.5-4 1.5-8 .5s-4.5-1.5-6.6 0'));
-      });
-      drawSvgPaths(rightX + colW * 1.5, iconY, (c) => {
-        c.stroke(new Path2D('M3 16v-5.5a4.5 4.5 0 0 1 4.5-4.5h7a4.5 4.5 0 0 1 4.5 4.5V16z'));
-        c.stroke(new Path2D('M9.5 16v-4.5A3.5 3.5 0 0 0 6 8'));
-        c.beginPath(); c.arc(14, 11.5, 1.1, 0, Math.PI * 2); c.stroke();
-        c.stroke(new Path2D('M11 16v6h3v-6'));
-        c.stroke(new Path2D('M16.5 6V2h4v2.5h-4'));
-      });
-      drawSvgPaths(rightX + colW * 2.5, iconY, (c) => {
-        c.stroke(new Path2D('M8 4h9a2 2 0 0 1 2 2v12'));
-        c.stroke(new Path2D('M6 7h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z'));
-        c.stroke(new Path2D('M7.5 12h5M7.5 15h5'));
-      });
-
-      ctx.save();
-      ctx.font = '700 54px Arial, Helvetica, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const valY = ly + countH + iconsH + valsH / 2;
-      ctx.fillText(data.v1, rightX + colW * 0.5, valY);
-      ctx.fillText(data.v2, rightX + colW * 1.5, valY);
-      ctx.fillText(data.v3, rightX + colW * 2.5, valY);
-      ctx.restore();
-
-      if (data.codigo) {
-        const tempCanvas = document.createElement('canvas');
-        JsBarcode(tempCanvas, data.codigo, { format: 'CODE128', displayValue: false, width: 4, height: 160, margin: 0 });
-        const bcAreaY = ly + mainH, bcAreaH = lh - mainH;
-        const bcW = Math.round(lw * 0.82), bcH = Math.round(bcAreaH * 0.78);
-        ctx.drawImage(tempCanvas, lx + Math.round((lw - bcW) / 2), bcAreaY + Math.round((bcAreaH - bcH) / 2), bcW, bcH);
-      }
-
-      return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-    }
-
-    // ====== COMPARTIR / IMPRIMIR ======
+    // ====== COMPARTIR / IMPRIMIR CON html2canvas (Compatible con Jadens Printer) ======
     let busy = false;
     async function compartirEtiqueta() {
       if (busy) return;
       busy = true;
       try {
-        const blob = await generarImagenEtiqueta();
-        const file = new File([blob], (data.codigo || 'etiqueta') + '.png', { type: 'image/png' });
+        const canvas = await html2canvas(document.getElementById('label-wrapper'), { 
+          scale: 3, 
+          backgroundColor: '#ffffff',
+          useCORS: true 
+        });
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        const nombreArchivo = (data.codigo || 'etiqueta') + '.png';
+        const file = new File([blob], nombreArchivo, { type: 'image/png' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({ files: [file], title: 'Etiqueta' });
@@ -354,7 +226,7 @@
     });
     document.getElementById('label-wrapper').addEventListener('click', compartirEtiqueta);
 
-    // Registrar Service Worker para Offline
+    // Registrar Service Worker para Offline (actualiza también sw.js para incluir html2canvas si es necesario)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
