@@ -181,8 +181,20 @@
       codigo:   getParam('IDEsa')            || getParam('codigo')   || ''
     };
 
-    for (const id of ['nombre','telefono','estado','destino','cantidad','v1','v2','v3']) {
+    // Normaliza el valor (quita acentos, mayúsculas) y decide si es un SI
+    const esSi = (valor) => {
+      const v = String(valor).normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+      return ['SI', 'YES', 'TRUE', 'Y', '1'].includes(v);
+    };
+    
+    // Campos de texto normales
+    for (const id of ['nombre','telefono','estado','destino','cantidad']) {
       document.getElementById(id).textContent = data[id];
+    }
+    
+    // Campos bajo los iconos: solo muestran "SI" si es SI, de lo contrario quedan en blanco
+    for (const id of ['v1','v2','v3']) {
+      document.getElementById(id).textContent = esSi(data[id]) ? 'SI' : '';
     }
 
     const svg = document.getElementById('barcode');
